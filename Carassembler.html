@@ -1,0 +1,116 @@
+<?php
+	session_start();
+?>
+<!DOCTYPE html>
+<html>
+
+<p>test: <spand id="test"></span></p>
+<button type="button" onclick="canWeAssemble()">Can we assemble a car?</button>
+<br>
+<br>
+<button type="button" id="assembler" style="display:none;" onclick="weCanAssemble()">Let's assemble a car!</button>
+
+
+<script type="text/javascript">
+
+var carBodyStored = false;
+var wheelSetStored = false;
+var engineStored = false;
+
+function canWeAssemble()
+{
+	//document.getElementById("assembler").style="display:visible";
+	// Call to see if there is a car body in storage.
+	isThereACarBodyInStorage();
+	// Call to see if there is a wheel set in storage.
+	isThereAWheelSetInStorage();
+	// Call to see if there is an engine in storage.
+	isThereAnEngineInStorage();
+	// Check to see if we can 
+}
+
+function isThereACarBodyInStorage()
+{
+	checkForCarBody = new XMLHttpRequest();
+	checkForCarBody.open("GET","CarBodyStorage.php?carReady=",true);
+	checkForCarBody.onreadystatechange=function()
+	{
+		if (checkForCarBody.readyState == 4 && checkForCarBody.status == 200)
+		{
+			if (checkForCarBody.responseText == "true")
+			{
+				carBodyStored = true;
+				document.getElementById("test").innerHTML = "true";
+				if (wheelSetStored == true && engineStored == true)
+				{
+					// button is now visible
+					document.getElementById("assembler").style="display:visible";
+				}
+			}
+			else
+			{
+				document.getElementById("test").innerHTML = "false";
+				carBodyStored = false;
+			}
+		}
+	}
+	checkForCarBody.send();
+}
+
+function isThereAWheelSetInStorage()
+{
+	checkForWheelSet = new XMLHttpRequest();
+	checkForWheelSet.open("GET","WheelSetStorage.php?wheelReady=",true);
+	checkForWheelSet.onreadystatechange=function()
+	{
+		if (checkForWheelSet.readyState == 4 && checkForWheelSet.status == 200)
+		{
+			if (checkForWheelSet.responseText == "true")
+			{
+				wheelSetStored = true;
+				if (carBodyStored == true && engineStored == true)
+				{
+					// button is now visible
+					document.getElementById("assembler").style="display:visible";
+				}
+			}
+			else
+			{
+				wheelSetStored = false;
+			}
+		}
+	}
+	checkForWheelSet.send();
+}
+
+function isThereAnEngineInStorage()
+{
+	checkForEngine = new XMLHttpRequest();
+	checkForEngine.open("GET","EngineStorage.php?engineReady=",true);
+	checkForEngine.onreadystatechange=function()
+	{
+		if (checkForEngine.readyState == 4 && checkForEngine.status == 200)
+		{
+			if (checkForEngine.responseText == "true")
+			{
+				engineStored = true;
+				if (wheelSetStored == true && carBodyStored == true)
+				{
+					// button is now visible
+					document.getElementById("assembler").style="display:visible";
+				}
+			}
+			else
+			{
+				engineStored = false;
+			}
+		}
+	}
+	checkForEngine.send();
+}
+
+</script>
+
+
+</body>
+</html>

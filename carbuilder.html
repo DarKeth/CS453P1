@@ -1,0 +1,405 @@
+<?php
+	session_start();
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<h1>The Car Builder</h1>
+</head>
+<body>
+
+
+<table>
+	<tr>
+		<th rowspan="7" width="150">
+			<h3>Your Order:</h3>
+			<p>engine power: <spand id="engine">150</span></p>
+			<p>body style: <spand id="bodyStyle">Fiesta</span></p>
+			<p>body color: <spand id="bodyColor">Blue</span></p>
+			<p>wheel style: <spand id="wheelStyle">A</span></p>
+			<p>wheel color: <spand id="wheelColor">Blue</span></p>
+			<input id="clickme" type="button" value="CLICKME" onclick="placeOrder();"/>
+		</th>
+		<th>
+			<h>Select engine type:</h>
+
+		</th>
+		<th>
+			<h>Select body style:</h>
+		</th>
+		<th>
+			<h>Select body color:</h>
+		</th>
+		<th rowspan="7" width="150">
+			<h3>stuff goes here<h3>
+			<p><b>Status:</b> <span id="test1"></span></p>
+			<p><b>Status text:</b> <span id="test2"></span></p>
+			<p><b>Response:</b> <span id="test3"></span></p>
+		</th>
+	</tr>
+	<tr>
+		<th>
+			<form >
+				<input type="radio" name = "engineType" value="150" checked onclick="display(this.value, 0)"> 150<br>
+				<input type="radio" name = "engineType" value="250" onclick="display(this.value, 0)"> 250<br>
+				<input type="radio" name = "engineType" value="400" onclick="display(this.value, 0)"> 400<br>
+			</form>
+		</th>
+		<th>
+			<form >
+				<input type="radio" name = "carBodyStyle" value="fiesta" checked onclick="display(this.value, 0)"> Fiesta<br>
+				<input type="radio" name = "carBodyStyle" value="fusion" onclick="display(this.value, 0)"> Fusion<br>
+				<input type="radio" name = "carBodyStyle" value="mustang" onclick="display(this.value, 0)"> Mustang<br>
+			</form>
+		</th>
+		<th>
+			<form >
+				<input type="radio" name = "carBodyColor" value="blue" checked onclick="display(this.value, 0)"> Blue<br>
+				<input type="radio" name = "carBodyColor" value="red" onclick="display(this.value, 0)"> Red<br>
+				<input type="radio" name = "carBodyColor" value="gold" onclick="display(this.value, 0)"> Gold<br>
+			</form>
+		</th>
+	</tr>
+	<tr>
+		<th colspan="3">
+			<h>Select Wheel Style:</h>
+		</th>
+	</tr>
+	<tr>
+			<form >
+			<th>
+				<input type="radio" name = "wheelStyle" value="A" checked onclick="display(this.value, 0)"> A
+				<img src="wheelA.png" alt="wheel style A">
+			</th>
+			<th>
+				<input type="radio" name = "wheelStyle" value="B" onclick="display(this.value, 0)"> B
+				<img src="wheelB.png" alt="wheel style B">
+			</th>
+			<th>
+				<input type="radio" name = "wheelStyle" value="C" onclick="display(this.value, 0)"> C
+				<img src="wheelC.png" alt="wheel style C">
+			</th>
+			</form>
+	</tr>
+	<tr>
+		<th colspan="3">
+			<h>Select wheel color:</h>
+		</th>
+	</tr>
+	<tr>
+		<th colspan="3">
+			<form >
+				<input type="radio" name = "wheelColor" value="blue" checked onclick="display(this.value, 1)"> Blue<br>
+				<input type="radio" name = "wheelColor" value="red" onclick="display(this.value, 1)"> Red<br>
+				<input type="radio" name = "wheelColor" value="gold" onclick="display(this.value, 1)"> Gold<br>
+			</form>
+		</th>
+	</tr>
+</table>
+
+
+<h2>Completed Order:</h2>
+<p>order number: <spand id="orderNum"></span></p>
+<p>engine power: <spand id="Fengine"></span></p>
+<p>body style: <spand id="FbodyStyle"></span></p>
+<p>body color: <spand id="FbodyColor"></span></p>
+<p>wheel style: <spand id="FwheelStyle"></span></p>
+<p>wheel color: <spand id="FwheelColor"></span></p>
+	<!--bellow for testing, will add hidden attribute later -->
+<p> engineflag: <span id="engineFlag"></span></p>
+<p> enginerecived value: <span id="engineRecievedValue"></span></p>
+
+<script type="text/javascript">
+
+
+
+var numberOfOrdersSubmitted = 0;
+var numberOfOrdersCompleted = 0;
+var ordersArray = [];
+
+function placeOrder()
+{
+	numberOfOrdersSubmitted++;
+	if (numberOfOrdersSubmitted - numberOfOrdersCompleted > 3)
+	{
+		// Hide the submit button
+		alert("No more orders.");
+		document.getElementById("clickme").style.visibility="hidden";
+	}
+	// Collect the order specifications.
+	var bodyStyle = document.querySelector('input[name="carBodyStyle"]:checked').value;
+	var bodyColor = document.querySelector('input[name="carBodyColor"]:checked').value;
+	var wheelStyle = document.querySelector('input[name="wheelStyle"]:checked').value;
+	var wheelColor = document.querySelector('input[name="wheelColor"]:checked').value;
+	var engine = document.querySelector('input[name="engineType"]:checked').value;
+	//alert(numberOfOrdersSubmitted);
+	//alert("You ordered: " + bodyColor + ' ' + bodyStyle + ", " + wheelColor + ' ' + wheelStyle + ", " + engine);
+	// Order the car body
+	//alert("Making the order");
+	orderCarBody(bodyStyle, bodyColor);
+	// Order the wheel set
+	orderWheelSet(wheelStyle, wheelColor);
+	// Order the engine
+	orderEngine(engine);
+	
+	// Call function that will look to see if the storage rooms have parts.
+	
+}
+
+function orderCarBody(bodyStyle, requestedColor)
+{
+	requestCarBody = new XMLHttpRequest();
+	requestCarBody.open("GET","ChattanoogaCarBody.php?bodyStyle="+bodyStyle, true);
+	requestCarBody.onreadystatechange=function()
+	{
+		if (requestCarBody.readyState == 4 && requestCarBody.status == 200)
+		{
+			// This function will then send the new carBody object to the php storage server
+			receivedCarBodyFromShop(requestCarBody.responseText, requestedColor);
+		}
+	}
+	requestCarBody.send();
+}
+
+function orderWheelSet(wheelStyle, requestedColor)
+{
+	requestWheelSet = new XMLHttpRequest();
+	requestWheelSet.open("GET","WheelsForUs.php?wheelStyle="+wheelStyle, true);
+	requestWheelSet.onreadystatechange=function()
+	{
+		if (requestWheelSet.readyState == 4 && requestWheelSet.status == 200)
+		{
+			// This function will then send the new wheelSet object to the php storage server
+			receivedWheelSetFromShop(requestWheelSet.responseText, requestedColor);
+		}
+	}
+	requestWheelSet.send();
+}
+
+function orderEngine(engineType)
+{
+	requestEngine = new XMLHttpRequest();
+	requestEngine.open("GET","NashvilleCarEngines.php?engine="+engineType, true);
+	requestEngine.onreadystatechange=function()
+	{
+		if (requestEngine.readyState == 4 && requestEngine.status == 200)
+		{
+			// This function will then send the new engine object to the php storage server
+			receivedEngineFromShop(requestEngine.responseText);
+		}
+	}
+	requestEngine.send();
+}
+
+function receivedCarBodyFromShop(bodyStyle, requestedColor)
+{
+	sendCarBodyToStorage(bodyStyle,requestedColor);
+	//<?php echo $_SESSION["bodyStyle"] ?> = bodyStyle;
+	//<?php echo $_SESSION["bodyColor"] ?> = requestedColor;
+	//alert(bodyStyle + ' ' + requestedColor);
+	//request = new XMLHttpRequest();
+	// I'm not sure if this is how it would be stored in the php server.
+	//request.open("POST","car body storage server.php?carBody="+bodyStyle+requestedColor);
+}
+
+function receivedWheelSetFromShop(wheelStyle, requestedColor)
+{
+	//<?php echo $_SESSION["wheelStyle"] ?> = wheelStyle;
+	//<?php echo $_SESSION["wheelColor"] ?> = requestedColor;
+	//alert(wheelStyle + ' ' + requestedColor);
+	//request = new XMLHttpRequest();
+	// I'm not sure if this is how it would be stored in the php server.
+	//request.open("POST","wheel set storage server.php?carBody="+wheelSet.getWheelStyle()+wheelSet.getRequestedColor());
+}
+
+function receivedEngineFromShop(engine)
+{
+	//alert(engine);
+	//<?php echo $_SESSION["engine"] ?> = engine;
+	//alert(<?php echo $_SESSION["engine"] ?>)
+	//request = new XMLHttpRequest();
+	// I'm not sure if this is how it would be stored in the php server.
+	//request.open("POST","engine storage server.php?carBody="+engine.getEngineType());
+}
+
+
+function sendCarBodyToStorage(bodyStyle, requestedColor)
+{
+	sendCar = new XMLHttpRequest();
+	sendCar.open("GET","CarBodyStorage.php?storeCarBody=" +(bodyStyle+requestedColor),true);
+	sendCar.onreadystatechange=function()
+	{
+		if (sendCar.readyState == 4 && sendCar.status == 200)
+		{
+			document.getElementById("Fengine").innerHTML = sendCar.responseText;
+		}
+	}
+	sendCar.send();
+
+	sendCars = new XMLHttpRequest();
+	sendCars.open("GET","CarBodyStorage.php?getCarBody=",true);
+	sendCars.onreadystatechange=function()
+	{
+		if (sendCars.readyState == 4 && sendCars.status == 200)
+		{
+			document.getElementById("orderNum").innerHTML = sendCars.responseText;
+		}
+	}
+	sendCars.send();
+
+
+}
+
+
+
+function display(val, otherval){
+	var url;
+	if(val=="150"&&otherval==0){
+			document.getElementById("engine").innerHTML = val;
+
+	}
+	if(val=="250"&&otherval==0){
+
+		document.getElementById("engine").innerHTML = val;
+
+	}
+	if(val=="400"&&otherval==0){
+	;
+		document.getElementById("engine").innerHTML = val;
+	}
+	if(val=="fiesta"&&otherval==0){
+		document.getElementById("bodyStyle").innerHTML = "Fiesta";
+	}
+	if(val=="fusion"&&otherval==0){
+		document.getElementById("bodyStyle").innerHTML = "Fusion";
+	}
+	if(val=="mustang"&&otherval==0){
+		document.getElementById("bodyStyle").innerHTML = "Mustang";
+	}
+	if(val=="red"&&otherval==0){
+		document.getElementById("bodyColor").innerHTML =" Red";
+	}
+	if(val=="blue"&&otherval==0){
+		document.getElementById("bodyColor").innerHTML = "Blue";
+	}
+	if(val=="gold"&&otherval==0){
+		document.getElementById("bodyColor").innerHTML = "Gold";
+	}
+	if(val=="A"&&otherval==0){
+		document.getElementById("wheelStyle").innerHTML = val;
+	}
+	if(val=="B"&&otherval==0){
+		document.getElementById("wheelStyle").innerHTML = val;
+	}
+	if(val=="C"&&otherval==0){
+		document.getElementById("wheelStyle").innerHTML = val;
+	}
+	if(val=="red"&&otherval==1){
+		document.getElementById("wheelColor").innerHTML = "Red";
+	}
+	if(val=="blue"&&otherval==1){
+		document.getElementById("wheelColor").innerHTML = "Blue";
+	}
+	if(val=="gold"&&otherval==1){
+		document.getElementById("wheelColor").innerHTML = "Gold";
+	}
+}
+
+class engine
+{
+	constructor(enginePower)
+	{
+		this.engineType = enginePower;
+	}
+	
+	get engineType()
+	{
+		return this.engineType;
+	}
+	
+}
+
+class carBody
+{
+	constructor(bodyStyle, currentColor, requestedColor)
+	{
+		this.bodyStyle = bodyStyle;
+		this.currentColor = currentColor;
+		this.requestedColor = requestedColor;
+	}
+	
+	get bodyStyle()
+	{
+		return this.bodyStyle;
+	}
+	
+	get currentColor()
+	{
+		return this.currentColor;
+	}
+	
+	get requestedColor()
+	{
+		return this.requestedColor;
+	}
+	
+	set bodyStyle(style)
+	{
+		this.bodyStyle = style;
+	}
+	
+	set currentColor(color)
+	{
+		this.currentColor = color;
+	}
+	
+	set requestedColor(color)
+	{
+		this.requestedColor = color;
+	}
+}
+
+class wheelSet
+{
+	constructor(wheelType, requestedColor, currentColor)
+	{
+		this.wheelType = wheelType;
+		this.requestedColor = requestedColor;
+		this.currentColor = currentColor;
+	}
+	
+	get wheelType()
+	{
+		return this.wheelType;
+	}
+	
+	get requestedColor()
+	{
+		return this.requestedColor;
+	}
+	
+	get currentColor()
+	{
+		return this.currentColor;
+	}
+	
+	set wheelType(type)
+	{
+		this.wheelType = type;
+	}
+	
+	set requestedColor(color)
+	{
+		this.requestedColor = color;
+	}
+	
+	set currentColor(color)
+	{
+		this.currentColor = color;
+	}
+}
+</script>
+
+</body>
+</html>
